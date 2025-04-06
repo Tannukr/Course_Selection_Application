@@ -70,17 +70,6 @@ A modern web-based Course Management System built with Django that allows studen
 - Student enrollment count
 - Course management options
 
-## Routes
-
-### Authentication
-- `/register/` - Register a new user
-- `/login/` - User login
-- `/logout/` - User logout
-
-### Main Pages
-- `/` - Home page
-- `/student-dashboard/` - Student dashboard for course management
-- `/faculty-dashboard/` - Faculty dashboard for course management
 
 ## Setup Instructions
 
@@ -126,26 +115,5 @@ A modern web-based Course Management System built with Django that allows studen
 
 5. Access the application at http://127.0.0.1:8000/
 
-## Usage Instructions
 
-### First Time Setup
-1. Navigate to http://127.0.0.1:8000/
-2. Register a new account by clicking "Register"
-3. Select a role (Student or Faculty)
-4. Login with your new account
-
-### Faculty Workflow
-1. After logging in, you'll be directed to the faculty dashboard
-2. Click "Create New Course" to add a new course
-3. Fill in course details (name, code, credits)
-4. View created courses on your dashboard
-5. Edit or delete courses using the buttons on each course card
-6. View students enrolled in each course
-
-### Student Workflow
-1. After logging in, you'll be directed to the student dashboard
-2. View available courses in the "Available Courses" section
-3. Register for courses (maximum 2) by clicking "Enroll"
-4. View your registered courses
-5. Drop courses when needed using the "Drop" button
 
