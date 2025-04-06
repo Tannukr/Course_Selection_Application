@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Course Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f7fb;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #667eea;
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar h2 {
+            font-size: 1.5rem;
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 2px solid white;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .course-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .course-title {
+            color: #333;
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .course-code {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .course-credits {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .instructor-info {
+            color: #718096;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .course-description {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .register-btn:hover {
+            background: #5a6fd1;
+        }
+
+        .register-btn:disabled {
+            background: #cbd5e0;
+            cursor: not-allowed;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #4a5568;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .courses-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab-btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <h2>Student Dashboard</h2>
+        <button class="logout-btn">Logout</button>
+    </nav>
+
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>Course Management</h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('available')">Available Courses</button>
+            <button class="tab-btn" onclick="showTab('registered')">My Courses</button>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        
+        <div class="courses-grid" id="coursesGrid">
+            <!-- Course cards will be dynamically added here -->
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        if (!localStorage.getItem('token') || localStorage.getItem('role') !== 'Student') {
+            window.location.href = '/login';
+        }
+
+        let currentTab = 'available';
+
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tab));
+            });
+            fetchCourses();
+        }
+
+        function createCourseCard(course, isRegistered = false) {
+            return `
+                <div class="course-card">
+                    <div class="course-header">
+                        <div>
+                            <h3 class="course-title">${course.course_name}</h3>
+                            <p class="course-code">${course.course_code}</p>
+                            <p class="course-credits">Credits: ${course.credits || 3}</p>
+                            <p class="instructor-info">Instructor: ${course.instructor_name || 'Not specified'}</p>
+                            ${course.description ? `<p class="course-description">${course.description}</p>` : ''}
+                        </div>
+                    </div>
+                    ${!isRegistered ? `
+                        <button class="register-btn" onclick="registerForCourse(${course.id})">
+                            Register for Course
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        async function fetchCourses() {
+            const endpoint = currentTab === 'available' ? '/api/courses/available/' : '/api/courses/registered/';
+            try {
+                const response = await fetch(endpoint, {
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const courses = await response.json();
+                    const coursesGrid = document.getElementById('coursesGrid');
+                    coursesGrid.innerHTML = '';
+                    
+                    if (courses.length === 0) {
+                        coursesGrid.innerHTML = `<div class="no-students">No ${currentTab === 'available' ? 'available' : 'registered'} courses found</div>`;
+                    } else {
+                        courses.forEach(course => {
+                            coursesGrid.innerHTML += createCourseCard(course, currentTab === 'registered');
+                        });
+                    }
+                } else {
+                    throw new Error('Failed to fetch courses');
+                }
+            } catch (error) {
+                console.error('Error fetching courses:', error);
+                showError('Failed to load courses. Please try again.');
+            }
+        }
+
+        async function registerForCourse(courseId) {
+            try {
+                const response = await fetch(`/api/courses/${courseId}/register/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('token')}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showError('Successfully registered for the course!', false);
+                    fetchCourses();
+                } else {
+                    showError(data.message || 'Failed to register for the course');
+                }
+            } catch (error) {
+                console.error('Error registering for course:', error);
+                showError('Failed to register for the course. Please try again.');
+            }
+        }
+
+        function showError(message, isError = true) {
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            errorMessage.style.color = isError ? '#e53e3e' : '#48bb78';
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        // Implement logout
+        document.querySelector('.logout-btn').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('username');
+            window.location.href = '/login';
+        });
+
+        // Initialize dashboard
+        fetchCourses();
+    </script>
+</body>
+</html> 

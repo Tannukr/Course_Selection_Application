@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Course Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .role-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: #5a6fd1;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .register-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Login</h1>
+        <div class="error-message" id="errorMessage"></div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="role-selector">
+                <button type="button" class="role-btn active" onclick="setRole('Student')" id="studentBtn">Student</button>
+                <button type="button" class="role-btn" onclick="setRole('Faculty')" id="facultyBtn">Faculty</button>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+        <div class="register-link">
+            Don't have an account? <a href="/register">Register</a>
+        </div>
+    </div>
+
+    <script>
+        let selectedRole = 'Student';
+
+        function setRole(role) {
+            selectedRole = role;
+            document.getElementById('studentBtn').classList.toggle('active', role === 'Student');
+            document.getElementById('facultyBtn').classList.toggle('active', role === 'Faculty');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            try {
+                const response = await fetch('/api/login/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        role: selectedRole
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Store the token and user info
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', data.username);
+                    localStorage.setItem('role', data.role);
+
+                    // Redirect based on role
+                    if (data.role === 'Student') {
+                        window.location.href = '/student-dashboard';
+                    } else if (data.role === 'Faculty') {
+                        window.location.href = '/faculty-dashboard';
+                    }
+                } else {
+                    errorMessage.textContent = data.message || 'Login failed';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Check if user is already logged in
+        if (localStorage.getItem('token')) {
+            const role = localStorage.getItem('role');
+            if (role === 'Student') {
+                window.location.href = '/student-dashboard';
+            } else if (role === 'Faculty') {
+                window.location.href = '/faculty-dashboard';
+            }
+        }
+    </script>
+</body>
+</html> 

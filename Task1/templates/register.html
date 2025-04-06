@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Course Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .role-selector {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .role-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .register-btn:hover {
+            background: #5a6fd1;
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #e53e3e;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Register</h1>
+        <div class="error-message" id="errorMessage"></div>
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="role-selector">
+                <button type="button" class="role-btn active" onclick="setRole('Student')" id="studentBtn">Student</button>
+                <button type="button" class="role-btn" onclick="setRole('Faculty')" id="facultyBtn">Faculty</button>
+            </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required>
+            </div>
+            <button type="submit" class="register-btn">Register</button>
+        </form>
+        <div class="login-link">
+            Already have an account? <a href="/login">Login</a>
+        </div>
+    </div>
+
+    <script>
+        let selectedRole = 'Student';
+
+        function setRole(role) {
+            selectedRole = role;
+            document.getElementById('studentBtn').classList.toggle('active', role === 'Student');
+            document.getElementById('facultyBtn').classList.toggle('active', role === 'Faculty');
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const errorMessage = document.getElementById('errorMessage');
+            
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'Passwords do not match';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            const formData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: password,
+                role: selectedRole
+            };
+
+            try {
+                const response = await fetch('/api/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Registration successful, redirect to login
+                    window.location.href = '/login';
+                } else {
+                    // Show error message
+                    errorMessage.textContent = Object.values(data).flat().join('\n');
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                errorMessage.textContent = 'An error occurred. Please try again.';
+                errorMessage.style.display = 'block';
+            }
+        }
+
+        // Check if user is already logged in
+        if (localStorage.getItem('token')) {
+            const role = localStorage.getItem('role');
+            if (role === 'Student') {
+                window.location.href = '/student-dashboard';
+            } else if (role === 'Faculty') {
+                window.location.href = '/faculty-dashboard';
+            }
+        }
+    </script>
+</body>
+</html> 
