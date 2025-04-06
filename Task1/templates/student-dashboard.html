@@ -5,317 +5,193 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Dashboard - Course Management System</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
-            background: #f5f7fb;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
         }
-
-        .navbar {
-            background: #667eea;
-            color: white;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .navbar h2 {
-            font-size: 1.5rem;
-        }
-
-        .logout-btn {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: white;
-            color: #667eea;
-        }
-
         .container {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
+            margin: 0 auto;
+            padding: 20px;
         }
-
-        .dashboard-header {
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 30px;
+            padding: 15px 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-
-        .courses-grid {
+        h1, h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        .course-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
         }
-
         .course-card {
             background: white;
+            padding: 20px;
             border-radius: 10px;
-            padding: 1.5rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eee;
         }
-
-        .course-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-
         .course-title {
+            font-size: 1.2em;
             color: #333;
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 15px;
+            font-weight: bold;
         }
-
-        .course-code {
+        .course-info {
             color: #666;
-            font-size: 0.9rem;
+            margin-bottom: 20px;
         }
-
-        .course-credits {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+        .course-info p {
+            margin: 8px 0;
         }
-
-        .instructor-info {
-            color: #718096;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            margin-right: 8px;
         }
-
-        .course-description {
-            color: #718096;
-            font-size: 0.9rem;
-        }
-
-        .register-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background: #667eea;
+        .btn-primary {
+            background: #007bff;
             color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s ease;
         }
-
-        .register-btn:hover {
-            background: #5a6fd1;
+        .btn-danger {
+            background: #dc3545;
+            color: white;
         }
-
-        .register-btn:disabled {
-            background: #cbd5e0;
-            cursor: not-allowed;
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
-
-        .tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .tab-btn {
-            padding: 0.75rem 1.5rem;
-            background: white;
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-weight: bold;
-            color: #4a5568;
+            text-decoration: none;
             transition: all 0.3s ease;
         }
-
-        .tab-btn.active {
-            background: #667eea;
-            color: white;
+        .logout-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-1px);
         }
-
-        .error-message {
-            color: #e53e3e;
-            text-align: center;
-            margin-bottom: 1rem;
-            display: none;
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 14px;
         }
-
-        @media (max-width: 768px) {
-            .courses-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .navbar {
-                padding: 1rem;
-            }
-
-            .container {
-                padding: 0 1rem;
-            }
-
-            .tabs {
-                flex-direction: column;
-            }
-
-            .tab-btn {
-                width: 100%;
-                text-align: center;
-            }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .message.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">
-        <h2>Student Dashboard</h2>
-        <button class="logout-btn">Logout</button>
-    </nav>
-
     <div class="container">
-        <div class="dashboard-header">
-            <h1>Course Management</h1>
+        <div class="header">
+            <h2>Student Dashboard</h2>
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
         </div>
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('available')">Available Courses</button>
-            <button class="tab-btn" onclick="showTab('registered')">My Courses</button>
+        {% if messages %}
+        {% for message in messages %}
+        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="card">
+            <h2>Enrolled Courses</h2>
+            <div class="course-list">
+                {% for course in enrolled_courses %}
+                <div class="course-card">
+                    <div class="course-title">{{ course.course_name }}</div>
+                    <div class="course-info">
+                        <p><strong>Course Code:</strong> {{ course.course_code }}</p>
+                        <p><strong>Credits:</strong> {{ course.credits }}</p>
+                        <p><strong>Faculty:</strong> {{ course.instructor.username }}</p>
+                    </div>
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="drop">
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <button type="submit" class="btn btn-danger">Drop Course</button>
+                    </form>
+                </div>
+                {% empty %}
+                <p>No courses enrolled yet.</p>
+                {% endfor %}
+            </div>
         </div>
 
-        <div class="error-message" id="errorMessage"></div>
-        
-        <div class="courses-grid" id="coursesGrid">
-            <!-- Course cards will be dynamically added here -->
+        <div class="card">
+            <h2>Available Courses</h2>
+            {% if not can_enroll %}
+            <div class="message warning">
+                You have reached the maximum limit of 2 courses. Drop a course to enroll in a new one.
+            </div>
+            {% endif %}
+            <div class="course-list">
+                {% for course in available_courses %}
+                <div class="course-card">
+                    <div class="course-title">{{ course.course_name }}</div>
+                    <div class="course-info">
+                        <p><strong>Course Code:</strong> {{ course.course_code }}</p>
+                        <p><strong>Credits:</strong> {{ course.credits }}</p>
+                        <p><strong>Faculty:</strong> {{ course.instructor.username }}</p>
+                    </div>
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="enroll">
+                        <input type="hidden" name="course_id" value="{{ course.id }}">
+                        <button type="submit" class="btn btn-primary" {% if not can_enroll %}disabled style="opacity: 0.5; cursor: not-allowed;"{% endif %}>
+                            {% if can_enroll %}Enroll{% else %}Maximum Courses Reached{% endif %}
+                        </button>
+                    </form>
+                </div>
+                {% empty %}
+                <p>No courses available.</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
-
-    <script>
-        // Check if user is logged in
-        if (!localStorage.getItem('token') || localStorage.getItem('role') !== 'Student') {
-            window.location.href = '/login';
-        }
-
-        let currentTab = 'available';
-
-        function showTab(tab) {
-            currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(tab));
-            });
-            fetchCourses();
-        }
-
-        function createCourseCard(course, isRegistered = false) {
-            return `
-                <div class="course-card">
-                    <div class="course-header">
-                        <div>
-                            <h3 class="course-title">${course.course_name}</h3>
-                            <p class="course-code">${course.course_code}</p>
-                            <p class="course-credits">Credits: ${course.credits || 3}</p>
-                            <p class="instructor-info">Instructor: ${course.instructor_name || 'Not specified'}</p>
-                            ${course.description ? `<p class="course-description">${course.description}</p>` : ''}
-                        </div>
-                    </div>
-                    ${!isRegistered ? `
-                        <button class="register-btn" onclick="registerForCourse(${course.id})">
-                            Register for Course
-                        </button>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        async function fetchCourses() {
-            const endpoint = currentTab === 'available' ? '/api/courses/available/' : '/api/courses/registered/';
-            try {
-                const response = await fetch(endpoint, {
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (response.ok) {
-                    const courses = await response.json();
-                    const coursesGrid = document.getElementById('coursesGrid');
-                    coursesGrid.innerHTML = '';
-                    
-                    if (courses.length === 0) {
-                        coursesGrid.innerHTML = `<div class="no-students">No ${currentTab === 'available' ? 'available' : 'registered'} courses found</div>`;
-                    } else {
-                        courses.forEach(course => {
-                            coursesGrid.innerHTML += createCourseCard(course, currentTab === 'registered');
-                        });
-                    }
-                } else {
-                    throw new Error('Failed to fetch courses');
-                }
-            } catch (error) {
-                console.error('Error fetching courses:', error);
-                showError('Failed to load courses. Please try again.');
-            }
-        }
-
-        async function registerForCourse(courseId) {
-            try {
-                const response = await fetch(`/api/courses/${courseId}/register/`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    showError('Successfully registered for the course!', false);
-                    fetchCourses();
-                } else {
-                    showError(data.message || 'Failed to register for the course');
-                }
-            } catch (error) {
-                console.error('Error registering for course:', error);
-                showError('Failed to register for the course. Please try again.');
-            }
-        }
-
-        function showError(message, isError = true) {
-            const errorMessage = document.getElementById('errorMessage');
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            errorMessage.style.color = isError ? '#e53e3e' : '#48bb78';
-            setTimeout(() => {
-                errorMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        // Implement logout
-        document.querySelector('.logout-btn').addEventListener('click', function() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('role');
-            localStorage.removeItem('username');
-            window.location.href = '/login';
-        });
-
-        // Initialize dashboard
-        fetchCourses();
-    </script>
 </body>
 </html> 

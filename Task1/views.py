@@ -1,164 +1,191 @@
-from django.shortcuts import render
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status, permissions
-from django.contrib.auth import authenticate
-from .serializers import UserSerializer, CourseSerializer, StudentSerializer
-from rest_framework.authtoken.models import Token
-from .permissions import IsFaculty, IsStudent
-from django.shortcuts import get_object_or_404
-from .models import Course, Student, User
-from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, authenticate, logout
+from django.contrib import messages
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import User, Course, Student
 
-# API Views
-class RegisterView(APIView):
-    def post(self,request):
-        serializer = UserSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data,status = status.HTTP_201_CREATED)
-        return Response(serializer.errors,status = status.HTTP_400_BAD_REQUEST)
-
-class LoginView(APIView):
-    def post(self,request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(username = username,password = password)
-        if user is not None:
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'message': 'Login successful',
-                'username': user.username,
-                'email': user.email,
-                'role': user.role,
-                'token': token.key
-            }, status=status.HTTP_200_OK)
-        return Response({'message':'Invalid credentials'}, status = status.HTTP_401_UNAUTHORIZED)
-
-class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self,request):
-        request.user.auth_token.delete()
-        return Response({'message':'Logout successful'},status = status.HTTP_200_OK)
-
-class GetCoursesView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsFaculty]
-
+class LoginView(View):
     def get(self, request):
-        courses = Course.objects.filter(instructor=request.user)
-        serializer = CourseSerializer(courses, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
+        if request.user.is_authenticated:
+            if hasattr(request.user, 'student_profile') or request.user.role == 'Student':
+                return redirect('student-dashboard')
+            return redirect('faculty-dashboard')
+        return render(request, 'login.html')
+
     def post(self, request):
-        # Make sure we have the necessary fields
-        if 'course_name' not in request.data or 'course_code' not in request.data:
-            return Response({
-                'error': 'Course name and course code are required'
-            }, status=status.HTTP_400_BAD_REQUEST)
-            
-        # Convert field names if necessary
-        data = request.data.copy()
-        
-        serializer = CourseSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save(instructor=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-class UpdateCourseView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsFaculty]
+        if not all([username, password]):
+            messages.error(request, 'Please fill in all fields')
+            return render(request, 'login.html', {'error_message': 'Please fill in all fields'})
 
-    def get(self, request, course_id):
-        course = get_object_or_404(Course, id=course_id, instructor=request.user)
-        serializer = CourseSerializer(course)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        user = authenticate(username=username, password=password)
+        
+        if user is None:
+            return render(request, 'login.html', {'error_message': 'Invalid credentials'})
 
-    def put(self, request, course_id):
-        course = get_object_or_404(Course, id=course_id, instructor=request.user)
+        login(request, user)
         
-        print(f"Updating course {course_id} (original: {course.course_name}, {course.course_code}) with data: {request.data}")
-        
-        # Ensure we're updating the existing course with the instance parameter
-        serializer = CourseSerializer(instance=course, data=request.data, partial=True)
-        
-        if serializer.is_valid():
-            updated_course = serializer.save()
-            print(f"Course updated successfully: {updated_course.course_name}, {updated_course.course_code}")
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        print(f"Validation errors: {serializer.errors}")
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, course_id):
-        course = get_object_or_404(Course, id=course_id, instructor=request.user)
-        course.delete()
-        return Response({'message': 'Course deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        # Check both student profile and role
+        if hasattr(user, 'student_profile') or user.role == 'Student':
+            return redirect('student-dashboard')
+        return redirect('faculty-dashboard')
 
-class AvailableCoursesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
+class RegisterView(View):
     def get(self, request):
-        # Get all courses taught by faculty members (not by the current student)
-        if request.user.role == 'Student':
-            courses = Course.objects.filter(instructor__role='Faculty')
-        else:
-            courses = Course.objects.all()
-        serializer = CourseSerializer(courses, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return render(request, 'register.html')
 
-class RegisterCourseView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsStudent]
+    def post(self, request):
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        role = request.POST.get('role')
 
-    def post(self, request, course_id):
-        if request.user.role != 'Student':
-            return Response({'error': 'User is not a student'}, status=status.HTTP_403_FORBIDDEN)
-        
-        student, created = Student.objects.get_or_create(user=request.user)
-        
-        if student.courses.count() >= 2:
-            return Response({'message': 'You have already registered for 2 courses'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+        if not all([username, email, password, role]):
+            return render(request, 'register.html', {'error_message': 'Please fill in all fields'})
 
-        course = get_object_or_404(Course, id=course_id)
+        if User.objects.filter(username=username).exists():
+            return render(request, 'register.html', {'error_message': 'Username already exists'})
 
-        if student.courses.filter(id=course.id).exists():
-            return Response({'message': 'You already registered for this course'}, 
-                          status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(email=email).exists():
+            return render(request, 'register.html', {'error_message': 'Email already exists'})
 
-        student.courses.add(course)
-        return Response({'message': 'Course registered successfully'}, status=status.HTTP_200_OK)
-    
-class GetRegisteredCoursesView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get(self, request):
         try:
-            # Get or create a student profile for the current user
-            student, created = Student.objects.get_or_create(user=request.user)
-            courses = student.courses.all()
-            serializer = CourseSerializer(courses, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Create the user first with the appropriate role
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                role='Student' if role.lower() == 'student' else 'Faculty'  # Set the role properly
+            )
 
-class CourseRegistrationStatsView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsFaculty]
+            # Handle student role
+            if role.lower() == 'student':
+                # Create student profile
+                student = Student.objects.create(user=user)
+                login(request, user)
+                print(f"Created student profile for user {username} with role {user.role}")  # Debug print
+                return redirect('student-dashboard')
+            
+            # Handle faculty role
+            login(request, user)
+            print(f"Created faculty user {username} with role {user.role}")  # Debug print
+            return redirect('faculty-dashboard')
+
+        except Exception as e:
+            print(f"Error during registration: {str(e)}")  # Debug print
+            return render(request, 'register.html', {'error_message': str(e)})
+
+class StudentDashboardView(LoginRequiredMixin, View):
+    login_url = '/login/'
 
     def get(self, request):
+        # Check if user is a student
+        if not hasattr(request.user, 'student_profile'):
+            messages.error(request, 'Access denied. Student account required.')
+            return redirect('login')
+        
+        enrolled_courses = request.user.student_profile.courses.all()
+        available_courses = Course.objects.exclude(id__in=[course.id for course in enrolled_courses])
+        
+        return render(request, 'student-dashboard.html', {
+            'enrolled_courses': enrolled_courses,
+            'available_courses': available_courses,
+            'can_enroll': enrolled_courses.count() < 2  # Add this to check if student can enroll in more courses
+        })
+
+    def post(self, request):
+        # Check if user is a student
+        if not hasattr(request.user, 'student_profile'):
+            messages.error(request, 'Access denied. Student account required.')
+            return redirect('login')
+
+        action = request.POST.get('action')
+        course_id = request.POST.get('course_id')
+
+        try:
+            course = Course.objects.get(id=course_id)
+            if action == 'enroll':
+                # Check if student has already enrolled in 2 courses
+                enrolled_count = request.user.student_profile.courses.count()
+                if enrolled_count >= 2:
+                    messages.error(request, 'You cannot enroll in more than 2 courses.')
+                else:
+                    request.user.student_profile.courses.add(course)
+                    messages.success(request, f'Successfully enrolled in {course.course_name}')
+            elif action == 'drop':
+                request.user.student_profile.courses.remove(course)
+                messages.success(request, f'Successfully dropped {course.course_name}')
+        except Course.DoesNotExist:
+            messages.error(request, 'Course not found')
+        except Exception as e:
+            messages.error(request, str(e))
+
+        return redirect('student-dashboard')
+
+class FacultyDashboardView(LoginRequiredMixin, View):
+    login_url = '/login/'
+
+    def get(self, request):
+        if hasattr(request.user, 'student_profile'):
+            return redirect('student-dashboard')
+        
         courses = Course.objects.filter(instructor=request.user)
-        stats = []
-        for course in courses:
-            course_stats = {
-                'course_name': course.course_name,
-                'course_code': course.course_code,
-                'total_students': course.students.count(),
-                'registered_students': [
-                    {
-                        'username': student.user.username,
-                        'email': student.user.email
-                    } for student in course.students.all()
-                ]
-            }
-            stats.append(course_stats)
-        return Response(stats, status=status.HTTP_200_OK)
+        return render(request, 'faculty-dashboard.html', {'courses': courses})
+
+    def post(self, request):
+        if hasattr(request.user, 'student_profile'):
+            return redirect('student-dashboard')
+
+        action = request.POST.get('action')
+        course_id = request.POST.get('course_id')
+        
+        if action == 'create':
+            name = request.POST.get('name')
+            code = request.POST.get('code')
+            credits = request.POST.get('credits')
+
+            try:
+                Course.objects.create(
+                    course_name=name,
+                    course_code=code,
+                    credits=credits,
+                    instructor=request.user
+                )
+                messages.success(request, f'Successfully created course {name}')
+            except Exception as e:
+                messages.error(request, str(e))
+
+        elif action == 'delete' and course_id:
+            try:
+                course = Course.objects.get(id=course_id, instructor=request.user)
+                course.delete()
+                messages.success(request, 'Course deleted successfully')
+            except Course.DoesNotExist:
+                messages.error(request, 'Course not found')
+
+        elif action == 'update' and course_id:
+            try:
+                course = Course.objects.get(id=course_id, instructor=request.user)
+                course.course_name = request.POST.get('name', course.course_name)
+                course.course_code = request.POST.get('code', course.course_code)
+                course.credits = request.POST.get('credits', course.credits)
+                course.save()
+                messages.success(request, 'Course updated successfully')
+            except Course.DoesNotExist:
+                messages.error(request, 'Course not found')
+            except Exception as e:
+                messages.error(request, str(e))
+
+        return redirect('faculty-dashboard')
+
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect('login')
+
+class IndexView(View):
+    def get(self, request):
+        return render(request, 'index.html')

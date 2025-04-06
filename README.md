@@ -1,75 +1,86 @@
 # Course Management System
 
-A full-stack web application for managing university courses, student registrations, and faculty teaching assignments.
-
-## Overview
-
-This Course Management System is built using Django REST Framework for the backend API and vanilla JavaScript for the frontend. It provides separate dashboards for students and faculty members with role-based access control.
+A modern web-based Course Management System built with Django that allows students to enroll in courses and faculty members to manage course offerings.
 
 ## Features
 
 ### For Students
-- View available courses
-- Register for up to 2 courses
-- View registered courses
-- See course details including credits, instructor, and description
+- User registration and authentication
+- Browse available courses
+- Enroll in up to 2 courses
+- View enrolled courses
+- Drop courses when needed
 
 ### For Faculty
-- Create new courses with name, code, credits and description
-- View courses they've created
-- Update course details
-- Delete courses
-- See students enrolled in their courses
+- User registration and authentication
+- Create new courses
+- Manage existing courses
+- View enrolled students count
+- Update course information
+
+### General Features
+- Clean and modern user interface
+- Secure authentication system
+- Role-based access control
+- Responsive design for all devices
+- Traditional form submissions (no JavaScript required)
+
+## Technical Details
+
+### Built With
+- Django (Backend Framework)
+- HTML5 & CSS3 (Frontend)
+- PostgreSQL (Database)
+
+### Security Features
+- CSRF protection
+- Password hashing
+- Session management
+- Form validation
+
+## Pages and Functionality
+
+### 1. Home Page
+- Welcome message
+- Login and Register buttons
+- Feature highlights for students and faculty
+
+### 2. Login Page
+- Username and password fields
+- Error message display
+- Link to registration page
+- Back to home navigation
+
+### 3. Registration Page
+- User information fields (username, email, password)
+- Role selection (student/faculty)
+- Form validation
+- Error message display
+
+### 4. Student Dashboard
+- View enrolled courses
+- Course enrollment functionality
+- Maximum 2 courses limit
+- Course dropping capability
+- Display of course details
+
+### 5. Faculty Dashboard
+- Course creation form
+- List of created courses
+- Student enrollment count
+- Course management options
+
+## Routes
 
 ### Authentication
-- User registration with role selection (Student/Faculty)
-- Secure login with token-based authentication
-- Logout functionality
+- `/register/` - Register a new user
+- `/login/` - User login
+- `/logout/` - User logout
 
-## Technology Stack
-
-- **Backend**: Django, Django REST Framework
-- **Frontend**: HTML, CSS, JavaScript
-- **Authentication**: Token-based authentication
-- **Database**: SQLite (default Django database)
-
-## Project Structure
-
-- `Assignment/` - Main project directory
-  - `settings.py` - Project settings
-  - `urls.py` - Main URL configuration
-- `Task1/` - Main application
-  - `models.py` - Database models (User, Course, Student)
-  - `views.py` - API views for handling requests
-  - `serializers.py` - Serializers for converting model data to JSON
-  - `urls.py` - URL routes for the application
-  - `permissions.py` - Custom permissions for role-based access
-  - `templates/` - HTML templates
-    - `index.html` - Landing page
-    - `login.html` - Login page
-    - `register.html` - Registration page
-    - `faculty-dashboard.html` - Faculty dashboard
-    - `student-dashboard.html` - Student dashboard
-
-## API Endpoints
-
-### Authentication
-- `POST /api/register/` - Register a new user
-- `POST /api/login/` - Login and get token
-- `POST /api/logout/` - Logout and invalidate token
-
-### Faculty Endpoints
-- `GET /api/courses/` - Get all courses created by the faculty
-- `POST /api/courses/` - Create a new course
-- `GET /api/courses/<id>/` - Get details of a specific course
-- `PUT /api/courses/<id>/` - Update a course
-- `DELETE /api/courses/<id>/` - Delete a course
-- `GET /api/courses/stats/` - Get enrollment statistics
-
-### Student Endpoints
-- `GET /api/courses/available/` - Get all available courses
-- `GET /api/courses/registered/` - Get all courses registered by the student
-- `POST /api/courses/<id>/register/` - Register for a course
+### Main Pages
+- `/` - Home page
+- `/student-dashboard/` - Student dashboard for course management
+- `/faculty-dashboard/` - Faculty dashboard for course management
 
 ## Setup Instructions
 
@@ -115,21 +126,6 @@ This Course Management System is built using Django REST Framework for the backe
 
 5. Access the application at http://127.0.0.1:8000/
 
-### API Endpoints
-
-- Registration: `/api/register/`
-- Login: `/api/login/`
-- Courses (Faculty): `/api/courses/`
-- Enrollments (Student): `/api/enrollments/`
-
-## Frontend Pages
-
-- Home: `/`
-- Login: `/login/`
-- Registration: `/register/`
-- Student Dashboard: `/student-dashboard/`
-- Faculty Dashboard: `/faculty-dashboard/`
-
 ## Usage Instructions
 
 ### First Time Setup
@@ -141,14 +137,15 @@ This Course Management System is built using Django REST Framework for the backe
 ### Faculty Workflow
 1. After logging in, you'll be directed to the faculty dashboard
 2. Click "Create New Course" to add a new course
-3. Fill in course details (name, code, credits, description)
+3. Fill in course details (name, code, credits)
 4. View created courses on your dashboard
 5. Edit or delete courses using the buttons on each course card
 6. View students enrolled in each course
 
 ### Student Workflow
 1. After logging in, you'll be directed to the student dashboard
-2. View available courses in the "Available Courses" tab
-3. Register for courses (maximum 2) by clicking "Register for Course"
-4. View your registered courses in the "My Courses" tab
+2. View available courses in the "Available Courses" section
+3. Register for courses (maximum 2) by clicking "Enroll"
+4. View your registered courses
+5. Drop courses when needed using the "Drop" button
 
