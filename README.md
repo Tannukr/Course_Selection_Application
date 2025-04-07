@@ -94,8 +94,8 @@ A modern web-based Course Management System built with Django that allows studen
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/course-management-system.git
-   cd course-management-system
+   git clone https://github.com/Tannukr/TaskAssignment.git
+   cd cd TaskAssignment-main
    ```
 
 2. Install dependencies:
