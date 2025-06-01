@@ -53,30 +53,25 @@ class RegisterView(View):
             return render(request, 'register.html', {'error_message': 'Email already exists'})
 
         try:
-            # Create the user first with the appropriate role
+            # Create the user with role
             user = User.objects.create_user(
                 username=username,
                 email=email,
                 password=password,
-                role='Student' if role.lower() == 'student' else 'Faculty'  # Set the role properly
+                role='Student' if role.lower() == 'student' else 'Faculty'
             )
 
-            # Handle student role
+            # If student, create profile
             if role.lower() == 'student':
-                # Create student profile
-                student = Student.objects.create(user=user)
-                login(request, user)
-                print(f"Created student profile for user {username} with role {user.role}")  # Debug print
-                return redirect('student-dashboard')
-            
-            # Handle faculty role
-            login(request, user)
-            print(f"Created faculty user {username} with role {user.role}")  # Debug print
-            return redirect('faculty-dashboard')
+                Student.objects.create(user=user)
+
+            messages.success(request, 'Registration successful! Please login.')
+            return redirect('login')
 
         except Exception as e:
-            print(f"Error during registration: {str(e)}")  # Debug print
+            print(f"Error during registration: {str(e)}")
             return render(request, 'register.html', {'error_message': str(e)})
+
 
 class StudentDashboardView(LoginRequiredMixin, View):
     login_url = '/login/'
